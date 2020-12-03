@@ -18,12 +18,10 @@ class Day_03(val treeLines: List<String>) {
      * works out some x,y locations we need to look for trees
      */
     fun positions(stepsRight: Int = 3, stepsDown: Int = 1): Sequence<Position> =
-        yPositions(stepsDown).mapIndexed { index, yPosition ->
-            Position(
-                index * stepsRight % treeLines[yPosition].length,
-                yPosition
-            )
-        }
+        yPositions(stepsDown)
+            .mapIndexed { index, yPosition ->
+                Position(index * stepsRight % treeLines[yPosition].length, yPosition)
+            }
 
     /**
      * for each x,y position count the number of times we hit a tree
