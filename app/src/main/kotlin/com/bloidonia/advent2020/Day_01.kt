@@ -1,6 +1,6 @@
 package com.bloidonia.advent2020
 
-import com.bloidonia.Utils
+import com.bloidonia.intsFromResource
 
 class Day_01 {
 
@@ -17,6 +17,6 @@ class Day_01 {
 }
 
 fun main() {
-    println(Day_01().match2(2020, Utils().intsFromResource("/1.txt")))
-    println(Day_01().match3(2020, Utils().intsFromResource("/1.txt")))
+    println(Day_01().match2(2020, intsFromResource("/1.txt")))
+    println(Day_01().match3(2020, intsFromResource("/1.txt")))
 }

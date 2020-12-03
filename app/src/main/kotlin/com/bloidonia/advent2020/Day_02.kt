@@ -1,6 +1,6 @@
 package com.bloidonia.advent2020
 
-import com.bloidonia.Utils
+import com.bloidonia.linesFromResource
 
 fun parse(line: String): Rule? = """^(\d+)-(\d+) (\S{1}): (\S+)$""".toRegex().matchEntire(line)?.let {
     Rule(it.groups[1]?.value?.toInt()!!, it.groups[2]?.value?.toInt()!!, it.groups[3]?.value!!, it.groups[4]?.value!!)
@@ -16,5 +16,5 @@ data class Rule(val min: Int, val max: Int, val letter: String, val password: St
 }
 
 fun main() {
-    println(Utils().linesFromResource("/2.txt").map { parse(it)?.matches2() ?: false }.count { it })
+    println(linesFromResource("/2.txt").map { parse(it)?.matches2() ?: false }.count { it })
 }
