@@ -3,6 +3,6 @@ package com.bloidonia
 // placeholder for getResource
 interface Utils
 
-fun linesFromResource(name: String) : List<String> = Utils::class.java.getResource(name).readText().split("\n")
-
-fun intsFromResource(name: String) : List<Int> = linesFromResource(name).map { it.toInt() }
+fun textFromResource(name: String) = Utils::class.java.getResource(name).readText()
+fun linesFromResource(name: String) = textFromResource(name).split("\n")
+fun intsFromResource(name: String) = linesFromResource(name).map { it.toInt() }
