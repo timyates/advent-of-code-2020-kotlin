@@ -13,19 +13,16 @@ class Day_05 {
         if (commands.isEmpty()) {
             return lower;
         }
-        val diff = (upper - lower + 1) / 2
         var newLower = lower
         var newUpper = upper
-        when (commands.take(1)) {
-            "F", "L" -> {
-                newUpper -= diff
-            }
-            "B", "R" -> {
-                newLower += diff
-            }
-            else -> {
-                throw IllegalArgumentException("Unknown command at head of $commands")
-            }
+        val nextCommand = commands.take(1)
+
+        if (nextCommand == "F" || nextCommand == "L") {         // Front or left
+            newUpper -= (upper - lower + 1) / 2
+        } else if (nextCommand == "B" || nextCommand == "R") {  // Back or right
+            newLower += (upper - lower + 1) / 2
+        } else {
+            throw IllegalArgumentException("Unknown command at head of $commands")
         }
         return decode(commands.drop(1), newLower, newUpper)
     }
