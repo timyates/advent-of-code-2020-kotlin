@@ -11,14 +11,14 @@ fun main() {
         .split("\n\n")
     val part1 = groupData
         .map {
-            it.split("\n").joinToString("").chars().toList().toSet().size
+            it.split("\n").joinToString("").toSet().size
         }
         .sum()
     println(part1)
 
     val part2 = groupData
         .map {
-            it.split("\n").map { it.chars().toList().toSet() }.reduceRight { s, g -> s.intersect(g) }.size
+            it.split("\n").map { it.toSet() }.reduceRight { s, g -> s.intersect(g) }.size
         }
         .sum()
 
