@@ -14,13 +14,18 @@ data class Position(val x: Int, val y: Int) {
 
 }
 
-enum class Direction(private val angle: Int) {
+interface Rotateable<T> {
+    fun right(amount: Int): T
+    fun left(amount: Int): T
+}
+
+enum class Direction(private val angle: Int): Rotateable<Direction> {
     N(0),
     E(90),
     S(180),
     W(270);
 
-    fun right(amount: Int): Direction {
+    override fun right(amount: Int): Direction {
         return (this.angle + amount).rem(360).let {
             var new = it
             while (new < 0) new += 360
@@ -28,7 +33,7 @@ enum class Direction(private val angle: Int) {
         }
     }
 
-    fun left(amount: Int): Direction {
+    override fun left(amount: Int): Direction {
         return (this.angle - amount).rem(360).let {
             var new = it
             while (new < 0) new += 360
@@ -37,9 +42,9 @@ enum class Direction(private val angle: Int) {
     }
 }
 
-data class Waypoint(val position: Position) {
+data class Waypoint(val position: Position): Rotateable<Waypoint> {
 
-    fun right(amount: Int): Waypoint {
+    override fun right(amount: Int): Waypoint {
         return when (amount.rem(360)) {
             90 -> Waypoint(Position(position.y, -position.x))
             180 -> Waypoint(Position(-position.x, -position.y))
@@ -48,7 +53,7 @@ data class Waypoint(val position: Position) {
         }
     }
 
-    fun left(amount: Int): Waypoint {
+    override fun left(amount: Int): Waypoint {
         return when (amount.rem(360)) {
             90 -> Waypoint(Position(-position.y, position.x))
             180 -> Waypoint(Position(-position.x, -position.y))
@@ -58,9 +63,17 @@ data class Waypoint(val position: Position) {
     }
 }
 
-data class Ship(val position: Position = Position(0, 0), val facing: Direction = Direction.E) {
+interface Moveable<T>: Rotateable<T> {
+    fun forward(amount: Int): T
+    fun north(amount: Int): T
+    fun south(amount: Int): T
+    fun east(amount: Int): T
+    fun west(amount: Int): T
+}
 
-    fun forward(amount: Int): Ship {
+data class Ship(val position: Position = Position(0, 0), val facing: Direction = Direction.E): Moveable<Ship> {
+
+    override fun forward(amount: Int): Ship {
         return when (facing) {
             Direction.N -> north(amount)
             Direction.E -> east(amount)
@@ -69,23 +82,25 @@ data class Ship(val position: Position = Position(0, 0), val facing: Direction =
         }
     }
 
-    fun north(amount: Int): Ship = Ship(position + Position(0, amount), facing)
-    fun south(amount: Int): Ship = Ship(position + Position(0, -amount), facing)
-    fun east(amount: Int): Ship = Ship(position + Position(amount, 0), facing)
-    fun west(amount: Int): Ship = Ship(position + Position(-amount, 0), facing)
+    override fun right(amount: Int): Ship = Ship(position, facing.right(amount))
+    override fun left(amount: Int): Ship = Ship(position, facing.left(amount))
+    override fun north(amount: Int): Ship = Ship(position + Position(0, amount), facing)
+    override fun south(amount: Int): Ship = Ship(position + Position(0, -amount), facing)
+    override fun east(amount: Int): Ship = Ship(position + Position(amount, 0), facing)
+    override fun west(amount: Int): Ship = Ship(position + Position(-amount, 0), facing)
 }
 
-data class ShipAndWaypoint(val ship: Ship = Ship(), val waypoint: Waypoint = Waypoint(Position(10, 1))) {
+data class ShipAndWaypoint(val ship: Ship = Ship(), val waypoint: Waypoint = Waypoint(Position(10, 1))): Moveable<ShipAndWaypoint> {
 
-    fun forward(amount: Int): ShipAndWaypoint =
+    override fun forward(amount: Int): ShipAndWaypoint =
         ShipAndWaypoint(Ship(ship.position + (waypoint.position * amount)), waypoint)
 
-    fun north(amount: Int): ShipAndWaypoint = ShipAndWaypoint(ship, Waypoint(waypoint.position + Position(0, amount)))
-    fun south(amount: Int): ShipAndWaypoint = ShipAndWaypoint(ship, Waypoint(waypoint.position + Position(0, -amount)))
-    fun east(amount: Int): ShipAndWaypoint = ShipAndWaypoint(ship, Waypoint(waypoint.position + Position(amount, 0)))
-    fun west(amount: Int): ShipAndWaypoint = ShipAndWaypoint(ship, Waypoint(waypoint.position + Position(-amount, 0)))
-
-    override fun toString(): String = "Ship at ${ship.position}, waypoint ${waypoint.position}"
+    override fun right(amount: Int): ShipAndWaypoint = ShipAndWaypoint(ship, waypoint.right(amount))
+    override fun left(amount: Int): ShipAndWaypoint = ShipAndWaypoint(ship, waypoint.left(amount))
+    override fun north(amount: Int): ShipAndWaypoint = ShipAndWaypoint(ship, Waypoint(waypoint.position + Position(0, amount)))
+    override fun south(amount: Int): ShipAndWaypoint = ShipAndWaypoint(ship, Waypoint(waypoint.position + Position(0, -amount)))
+    override fun east(amount: Int): ShipAndWaypoint = ShipAndWaypoint(ship, Waypoint(waypoint.position + Position(amount, 0)))
+    override fun west(amount: Int): ShipAndWaypoint = ShipAndWaypoint(ship, Waypoint(waypoint.position + Position(-amount, 0)))
 }
 
 class Day_12 {
@@ -95,29 +110,15 @@ class Day_12 {
             Pair(it.groupValues[1], it.groupValues[2].toInt())
         }
 
-    fun move(current: Ship, command: String): Ship {
+    fun <T> move(current: Moveable<T>, command: String): T {
         val instruction = parseInstruction(command)
         return when (instruction.first) {
             "N" -> current.north(instruction.second)
             "E" -> current.east(instruction.second)
             "S" -> current.south(instruction.second)
             "W" -> current.west(instruction.second)
-            "R" -> Ship(current.position, current.facing.right(instruction.second))
-            "L" -> Ship(current.position, current.facing.left(instruction.second))
-            "F" -> current.forward(instruction.second)
-            else -> throw IllegalArgumentException("Unparseable command $command")
-        }
-    }
-
-    fun move(current: ShipAndWaypoint, command: String): ShipAndWaypoint {
-        val instruction = parseInstruction(command)
-        return when (instruction.first) {
-            "N" -> current.north(instruction.second)
-            "E" -> current.east(instruction.second)
-            "S" -> current.south(instruction.second)
-            "W" -> current.west(instruction.second)
-            "R" -> ShipAndWaypoint(current.ship, current.waypoint.right(instruction.second))
-            "L" -> ShipAndWaypoint(current.ship, current.waypoint.left(instruction.second))
+            "R" -> current.right(instruction.second)
+            "L" -> current.left(instruction.second)
             "F" -> current.forward(instruction.second)
             else -> throw IllegalArgumentException("Unparseable command $command")
         }
